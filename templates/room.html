@@ -1,0 +1,66 @@
+{# our flask server #}
+{% extends 'base.html'%}
+{% block content %}
+<div class='message-box'>
+    {# we want others to know  the room-code  to join #}
+    <h2>Chat Room: {{code}} </h2>
+    
+    {# below is the part of the code , where we inject the socket-server code using js   #}
+    <div class="messages" id="messages"></div>
+
+    <div class='inputs'>
+        <input type='text' rows=3 placeholder="Message" name='message' id='message'>
+        <button type='button' name="send" id="send-btn" onClick="sendMessage()">Send</button>
+    </div>
+    
+</div>
+
+<script type="text/javascript">
+    var socketio = io();
+
+    // fetch the message id 
+    const messages = document.getElementById("messages"); 
+
+    // create the message 
+    const createMessage = (name, msg) => {
+        const content = `
+        <div class="text">
+            <span>
+                <strong>${name}</strong> : ${msg}
+            </span>
+            <span class="muted">
+                ${new Date().toLocaleString()}
+            </span>
+        </div>
+        `;
+        messages.innerHTML += content;
+      
+    };
+
+    // listen for the server event message and then callback function data(has name and message) 
+    socketio.on("message", (data) => {
+        createMessage(data.name, data.message);
+        console.log(content)
+    });
+
+    // use a arrow function
+    const sendMessage = () => {
+        console.log("send");
+        // fetch the message 
+        const message = document.getElementById("message");
+        // empty message do nothing 
+        if (message.value == "") return; 
+
+        socketio.emit("message", {data: message.value})
+        message.value = "";
+    };
+
+</script>
+
+{# to keep the track of history of messages#}
+{% for msg in messages  %}
+<script type="text/javascript">
+    createMessage("{{msg.name}}", "{{msg.message}}")
+</script>
+{% endfor %}
+{% endblock  %}
